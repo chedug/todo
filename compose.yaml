@@ -1,0 +1,56 @@
+version: '3.7'
+
+services:
+
+  todo:
+    container_name: todo
+    hostname: todo
+    image: todo
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - py-todo-db
+    links:
+      - py-todo-db
+    restart: unless-stopped
+    networks:
+      - python-net
+    volumes:
+      - .:/app
+
+  py-todo-db:
+    container_name: py-todo-db
+    image: postgres:15-alpine
+    hostname: py-todo-db
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_NAME=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5434:5432"
+    networks:
+      - python-net
+    volumes:
+      - postgres_python_todo:/var/lib/postgresql/data
+
+networks:
+  python-net:
+    driver: bridge
+    name: python-net
+
+
+volumes:
+  postgres_python_todo:
